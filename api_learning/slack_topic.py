@@ -52,6 +52,14 @@ def set_topic():
     print(r.status_code)
 
 
+def saturday_deletion():
+    if current_day == 'Saturday' or current_day == 'Sunday':
+        # del weekly_list[:]
+        print(f'It is {current_day}')
+    else:
+        set_topic()
+
+
 # get_date()
 fill_schedule()
 
@@ -63,14 +71,14 @@ week_dict = {
     'Friday': weekly_list[4]
 }
 
-topic = f'The #it-support IT guy for the day is {compare_day_schedule().title()}.'
+topic = f'The #it-support shift member for the day is {compare_day_schedule().title()}.'
 
 data = {'token': slack_token,
         'channel': slack_channel,
         'topic': topic}
 
-set_topic()
-
+# set_topic()
+saturday_deletion()
 '''
 NEED TO POTENTIALLY WRITE TO A FILE - SEND DMS BASED ON THIS FILE - CLEAR FILE ON SAT, RERUN SCRIPT/REPOPULATE ON SUN
 '''
