@@ -24,6 +24,7 @@ current_day = current_time.strftime("%A")
 
 
 def max_shifts(remove_from, how_many):
+    # Ensures that no IT Member is placed on more than 2 shifts a week
     # https://stackoverflow.com/questions/38599066/removing-some-of-the-duplicates-from-a-list-in-python
     counts = Counter()
     for item in remove_from:
@@ -33,12 +34,16 @@ def max_shifts(remove_from, how_many):
 
 
 def fill_schedule():
+    # Fills the weekly_list schedule and calls the max_shifts function to ensure
+    # that no IT Member is placed on more than 2 shifts a week
     while len(weekly_list) != 5:
         weekly_list.append(choice(it_list))
         max_shifts(weekly_list, 2)
 
 
 def compare_day_schedule():
+    # Compares the schedule that was created by the fill_schedule function against the current day of the week
+    # and returns the IT Member whose shift it is for the day
     for day in week_dict:
         if current_day == day:
             shift_member = week_dict[day]
@@ -48,11 +53,13 @@ def compare_day_schedule():
 
 
 def set_topic():
+    # Post to Slack with the below topic, data to the channel above
     r = requests.post(url, data=data)
     print(r.status_code)
 
 
 def saturday_deletion():
+    # Clears weekly_list schedule on a Saturday or Sunday, if not weekend then set topic in Slack
     if current_day == 'Saturday' or current_day == 'Sunday':
         # del weekly_list[:]
         print(f'It is {current_day}')
