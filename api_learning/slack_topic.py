@@ -30,15 +30,6 @@ current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
 current_day = current_time.strftime("%A")
 
-# Assigns a day to an IT Member
-week_dict = {
-    'Monday': weekly_list[0],
-    'Tuesday': weekly_list[1],
-    'Wednesday': weekly_list[2],
-    'Thursday': weekly_list[3],
-    'Friday': weekly_list[4]
-}
-
 
 def max_shifts(remove_from, how_many):
     # Ensures that no IT Member is placed on more than 2 shifts a week
@@ -58,18 +49,22 @@ def fill_schedule():
         max_shifts(weekly_list, 2)
 
 
-def write_schedule():
-    with open(schedule_file, 'w') as file_object:
-        for element in weekly_list:
-            file_object.write(element + '\n')
+def write_schedule(today):
+    if today == 'Sunday':
+        with open(schedule_file, 'w') as file_object:
+            for element in weekly_list:
+                file_object.write(element + '\n')
+    else:
+        print('Not re-writing schedule today.')
 
 
 def read_schedule():
     with open(schedule_file) as file_object:
         lines = file_object.readlines()
         for line in lines:
-            # weekly_list.append(line.rstrip())
-            print(line)
+            weekly_list.append(line.rstrip())
+            # print(line)
+    print(weekly_list)
 
 
 def compare_day_schedule():
@@ -102,6 +97,15 @@ def saturday_deletion():
 # get_date()
 fill_schedule()
 
+# Assigns a day to an IT Member
+week_dict = {
+    'Monday': weekly_list[0],
+    'Tuesday': weekly_list[1],
+    'Wednesday': weekly_list[2],
+    'Thursday': weekly_list[3],
+    'Friday': weekly_list[4]
+}
+
 topic = f'The #it-support shift member for the day is {compare_day_schedule().title()}.'
 data = {'token': slack_token,
         'channel': slack_channel,
@@ -112,3 +116,4 @@ data = {'token': slack_token,
 '''
 NEED TO POTENTIALLY WRITE TO A FILE - SEND DMS BASED ON THIS FILE - CLEAR FILE ON SAT, RERUN SCRIPT/REPOPULATE ON SUN
 '''
+write_schedule(current_day)
