@@ -17,15 +17,10 @@ slack_channel = 'G0125J6V866'
 it_list = ['hayden', 'adeel', 'alex']
 random_it_member = choice(it_list)
 
-# topic = f'The #it-support IT guy for the day is {random_it_member.title()}'
-
 weekly_list = []
 
-
-# def get_date():
 current_time = datetime.datetime.now()
 current_day = current_time.strftime("%A")
-    # return current_day
 
 
 def max_shifts(remove_from, how_many):
@@ -34,8 +29,6 @@ def max_shifts(remove_from, how_many):
     for item in remove_from:
         counts[item] += 1
         if counts[item] > how_many:
-            # yield item
-            # max_shift_list.append(item)
             weekly_list.remove(item)
 
 
@@ -46,15 +39,11 @@ def fill_schedule():
 
 
 def compare_day_schedule():
-    # if week_dict.keys() == current_day:
-    #     print(week_dict.keys())
     for day in week_dict:
         if current_day == day:
-            # print(week_dict[day])
             shift_member = week_dict[day]
             return shift_member
         else:
-            # print("Day incorrect")
             continue
 
 
@@ -80,26 +69,8 @@ data = {'token': slack_token,
         'channel': slack_channel,
         'topic': topic}
 
-# print(week['Monday'].title())
-# print(week)
+set_topic()
 
-# for day in week.values():
-#     print(day)
-
-    # while len(weekly_list) < 6:
-    #     weekly_list.append(choice(it_list))
-        # print(len(weekly_list))
-        # keep_n_dupes(weekly_list, 2)
-
-    # del weekly_list[-1]
-    # keep_n_dupes(weekly_list, 2)
-    # print(weekly_list)
-    # print(max_shift_list)
-# print(list(keep_n_dupes(weekly_list, 2)))
-
-# print(len(it_list))
-
-# print(week_dict)
-# compare_day_schedule()
-# print(compare_day_schedule())
-print(topic)
+'''
+NEED TO POTENTIALLY WRITE TO A FILE - SEND DMS BASED ON THIS FILE - CLEAR FILE ON SAT, RERUN SCRIPT/REPOPULATE ON SUN
+'''
