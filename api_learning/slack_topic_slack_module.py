@@ -179,7 +179,6 @@ def saturday_deletion(day):
         post_message()
 
 
-
 # get_date()
 fill_schedule(current_day)
 
