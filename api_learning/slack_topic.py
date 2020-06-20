@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from random import choice
 import datetime
 from collections import Counter
+from slack import WebClient
+from slack.errors import SlackApiError
 
 # get path to current directory
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -16,6 +18,9 @@ topic_url = 'https://slack.com/api/conversations.setTopic'
 post_message_url = 'https://slack.com/api/chat.postMessage'
 # Slack token
 slack_token = os.environ.get('SLACK_TOKEN')
+# Slack module API token
+client = WebClient(token=os.environ.get('SLACK_TOKEN'))
+
 
 # #it-support-bantz channel
 # slack_channel = 'G0125J6V866'
@@ -37,9 +42,9 @@ slack_channel = 'C015SGU1LBV'
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
 it_dict = {
-    'hayden': ['C015SGU1LBV', 'UEPH6G519'],
-    'adeel': ['C015SGU1LBV', 'UHNT8DGGY'],
-    'alex': ['C015SGU1LBV', 'U011VK4K44S'],
+    'hayden': ['UEPH6G519', 'UEPH6G519'],
+    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
+    'alex': ['UEPH6G519', 'U011VK4K44S'],
     'dingus': ['UEPH6G519', 'U013WH5MVRR']
 }
 
