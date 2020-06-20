@@ -16,22 +16,31 @@ topic_url = 'https://slack.com/api/conversations.setTopic'
 post_message_url = 'https://slack.com/api/chat.postMessage'
 # Slack token
 slack_token = os.environ.get('SLACK_TOKEN')
-# #it-support channel
-slack_channel = 'G0125J6V866'
 
-# list of IT Support members
-it_list = ['hayden', 'adeel', 'alex']
+# #it-support-bantz channel
+# slack_channel = 'G0125J6V866'
 
+# #it-support-alerts channel
+# slack_channel = 'C013XK82R24'
+
+# #shift-bot-spam channel
+slack_channel = 'C015SGU1LBV'
+
+
+# list of IT Support members with the following value types
+# {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
+# it_dict = {
+#     'hayden': ['DEPF8CW2G', 'UEPH6G519'],
+#     'adeel': ['DHNT8FJ8G', 'UHNT8DGGY'],
+#     'alex': ['D0123FPLCE9', 'U011VK4K44S']
+# }
+
+# All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
 it_dict = {
-    'hayden': ['DEPF8CW2G', 'UEPH6G519'],
-    'adeel': ['DHNT8FJ8G', 'UHNT8DGGY'],
-    'alex': ['D0123FPLCE9', 'U011VK4K44S']
-}
-
-mention_dict = {
-    'hayden': 'UEPH6G519',
-    'adeel': 'UHNT8DGGY',
-    'alex': 'U011VK4K44S'
+    'hayden': ['C015SGU1LBV', 'UEPH6G519'],
+    'adeel': ['C015SGU1LBV', 'UHNT8DGGY'],
+    'alex': ['C015SGU1LBV', 'U011VK4K44S'],
+    'dingus': ['UEPH6G519', 'U013WH5MVRR']
 }
 
 # txt file which stores the schedule for the week
@@ -40,10 +49,15 @@ schedule_file = 'weekly_schedule.txt'
 # list to store the weekly schedule
 weekly_list = []
 
+# day to wipe the schedule and repopulate it
+rota_day = 'Saturday'
+
 # grabs the current day
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
-current_day = current_time.strftime("%A")
+# current_day = current_time.strftime("%A")
+# testing the current_day variable by hardcoding the day
+current_day = 'Tuesday'
 
 
 def max_shifts(remove_from, how_many):
@@ -56,21 +70,13 @@ def max_shifts(remove_from, how_many):
             weekly_list.remove(item)
 
 
-def fill_schedule():
-    # Fills the weekly_list schedule and calls the max_shifts function to ensure
-    # that no IT Member is placed on more than 2 shifts a week
-    while len(weekly_list) != 5:
-        weekly_list.append(choice(list(it_dict.keys())))
-        max_shifts(weekly_list, 2)
-
-
-def write_schedule(today):
+def write_schedule(day):
     # If the day is Sunday, the schedule gets wiped
-    if today == 'Sunday':
+    if day == rota_day:
         with open(schedule_file, 'w') as file_object:
             for element in weekly_list:
                 file_object.write(element + '\n')
-        del weekly_list[:]
+        # del weekly_list[:]
     else:
         print('Not re-writing schedule today.')
 
@@ -78,13 +84,27 @@ def write_schedule(today):
 def read_schedule():
     with open(schedule_file) as file_object:
         lines = file_object.readlines()
+        if weekly_list:
+            del weekly_list[:]
         for line in lines:
             weekly_list.append(line.rstrip())
             # print(line)
     # print(weekly_list)
 
 
-def compare_day_schedule():
+def fill_schedule(day):
+    # Fills the weekly_list schedule and calls the max_shifts function to ensure
+    # that no IT Member is placed on more than 2 shifts a week
+    if day == rota_day:
+        while len(weekly_list) != 5:
+            weekly_list.append(choice(list(it_dict.keys())))
+            max_shifts(weekly_list, 2)
+        write_schedule(current_day)
+    else:
+        read_schedule()
+
+
+def today_shift_member():
     # Compares the schedule that was created by the fill_schedule function against the current day of the week
     # and returns the IT Member whose shift it is for the day
     for day in week_dict:
@@ -96,7 +116,7 @@ def compare_day_schedule():
 
 
 def get_shift_member_channel_id():
-    name = f'{compare_day_schedule()}'
+    name = f'{today_shift_member()}'
     # print(name)
     for key, value in it_dict.items():
         if name == key:
@@ -108,7 +128,7 @@ def get_shift_member_channel_id():
 
 
 def get_shift_member_user_id():
-    name = f'{compare_day_schedule()}'
+    name = f'{today_shift_member()}'
     # print(name)
     for key, value in it_dict.items():
         if name == key:
@@ -122,25 +142,27 @@ def get_shift_member_user_id():
 def set_topic():
     # Post to Slack with the below topic, data to the channel above
     topic_post = requests.post(topic_url, data=topic_data)
-    print(f'Topic POST response: {topic_post.status_code}')
+    print(f'Topic POST response: {topic_post.content}')
 
     message_post = requests.post(post_message_url, data=message_data)
-    print(f'Topic POST response: {message_post.status_code}')
+    print(f'Message POST response: {message_post.content}')
 
 
 # place content of this function into name == main
-def saturday_deletion():
+def saturday_deletion(day):
     # Clears weekly_list schedule on a Saturday or Sunday, if not weekend then set topic in Slack
-    if current_day == 'Saturday' or current_day == 'Sunday':
+    if day == rota_day:
         # del weekly_list[:]
+        write_schedule(current_day)
         print(f'It is {current_day}')
     else:
         write_schedule(current_day)
         read_schedule()
         set_topic()
 
+
 # get_date()
-fill_schedule()
+fill_schedule(current_day)
 
 # Assigns a day to an IT Member
 week_dict = {
@@ -161,15 +183,11 @@ topic_data = {
 message_data = {
     'token': slack_token,
     'channel': get_shift_member_channel_id(),
-    'text': f'<@{get_shift_member_user_id()}> you smell like beans'
+    'text': f'<@{get_shift_member_user_id()}> :snake:'
 }
 
-# set_topic()
-# saturday_deletion()
-'''
-NEED TO POTENTIALLY WRITE TO A FILE - SEND DMS BASED ON THIS FILE - CLEAR FILE ON SAT, RERUN SCRIPT/REPOPULATE ON SUN
-'''
-# write_schedule(current_day)
-# read_schedule()
-saturday_deletion()
-# message_it_member()
+# saturday_deletion(current_day)
+
+if __name__ == "__main__":
+    # fill_schedule(current_day)
+    saturday_deletion(current_day)
