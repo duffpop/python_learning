@@ -1,15 +1,14 @@
 import logging
-
-logging.basicConfig(level=logging.DEBUG)
-
 import os
 from slack import WebClient
 from slack.errors import SlackApiError
-
 from dotenv import load_dotenv
 from random import choice
 import datetime
 from collections import Counter
+
+# setting logging
+logging.basicConfig(level=logging.DEBUG)
 
 # get path to current directory
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -18,14 +17,30 @@ load_dotenv(os.path.join(BASEDIR, '.env'))
 
 client = WebClient(token=os.environ.get('SLACK_TOKEN'))
 
+'''
+Required API scopes:
+    - channels:manage - Manage public channels - to set channel topic for #it-support - NOT YET IMPLEMENTED
+    - groups:write - Manage private channels - to set channel topic for #it-support-team-bantz
+    - im:write - DM people - to send the IT Support shift member a DM notifying them that they're on shift
+'''
+
+
 # #it-support-bantz channel
-# slack_channel = 'G0125J6V866'
+slack_channel = 'G0125J6V866'
 
 # #it-support-alerts channel
 # slack_channel = 'C013XK82R24'
 
 # #shift-bot-spam channel
-slack_channel = 'C015SGU1LBV'
+# slack_channel = 'C015SGU1LBV'
+
+# list of IT Support members with the following value types
+# {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
+it_dict = {
+    'hayden': ['UEPH6G519', 'UEPH6G519'],
+    'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+    'alex': ['U011VK4K44S', 'U011VK4K44S']
+}
 
 # list of IT Support members with the following value types
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
@@ -36,12 +51,12 @@ slack_channel = 'C015SGU1LBV'
 # }
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
-it_dict = {
-    'hayden': ['UEPH6G519', 'UEPH6G519'],
-    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
-    'alex': ['UEPH6G519', 'U011VK4K44S'],
-    'dingus': ['UEPH6G519', 'U013WH5MVRR']
-}
+# it_dict = {
+#     'hayden': ['UEPH6G519', 'UEPH6G519'],
+#     'adeel': ['UEPH6G519', 'UHNT8DGGY'],
+#     'alex': ['UEPH6G519', 'U011VK4K44S'],
+#     'dingus': ['UEPH6G519', 'U013WH5MVRR']
+# }
 
 # txt file which stores the schedule for the week
 schedule_file = 'weekly_schedule.txt'
@@ -55,9 +70,9 @@ rota_day = 'Saturday'
 # grabs the current day
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
-# current_day = current_time.strftime("%A")
+current_day = current_time.strftime("%A")
 # testing the current_day variable by hardcoding the day
-current_day = 'Tuesday'
+# current_day = 'Tuesday'
 
 
 def max_shifts(remove_from, how_many):
@@ -156,7 +171,7 @@ def post_message():
     try:
         post_message_response = client.chat_postMessage(
             channel=get_shift_member_channel_id(),
-            text=f'<@{get_shift_member_user_id()}> :snake:'
+            text=f'<@{get_shift_member_user_id()}> you are the IT warrior of the day, please keep an eye on <#CHGUTD9PV>'
         )
         # print("Succeeded!")
     except SlackApiError as e_post_message:
