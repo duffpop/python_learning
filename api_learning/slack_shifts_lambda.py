@@ -18,6 +18,13 @@ LOGGER.setLevel(logging.INFO)
 
 slack_token = os.environ.get('SLACK_TOKEN')
 
+s3_client = boto3.resource('s3')
+# bucket = "weekly-schedule"
+bucket = s3_client.Bucket('weekly-schedule')
+file_name = "weekly_schedule.txt"
+object_name = file_name
+lambda_path = ("/tmp/" + file_name)
+
 # Slack set topic URL
 topic_url = 'https://slack.com/api/conversations.setTopic'
 # Slack post message URL
@@ -66,7 +73,8 @@ it_dict = {
 schedule_file = 'weekly_schedule.txt'
 
 # list to store the weekly schedule
-weekly_list = ['hayden', 'alex', 'alex', 'adeel', 'hayden']
+# weekly_list = ['hayden', 'alex', 'alex', 'adeel', 'hayden']
+weekly_list = []
 
 # day to wipe the schedule and repopulate it
 rota_day = 'Saturday'
@@ -74,11 +82,11 @@ rota_day = 'Saturday'
 # grabs the current day
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
-current_day = current_time.strftime("%A")
+# current_day = current_time.strftime("%A")
 
 
 # testing the current_day variable by hardcoding the day
-# current_day = 'Tuesday'
+current_day = 'Saturday'
 
 
 def max_shifts(remove_from, how_many):
@@ -91,38 +99,41 @@ def max_shifts(remove_from, how_many):
             weekly_list.remove(item)
 
 
-# def write_schedule(day):
-#     # If the day is Sunday, the schedule gets wiped
-#     if day == rota_day:
-#         with open(schedule_file, 'w') as file_object:
-#             for element in weekly_list:
-#                 file_object.write(element + '\n')
-#         # del weekly_list[:]
-#     else:
-#         print('Not re-writing schedule today.')
+def write_schedule(day):
+    # If the day is Sunday, the schedule gets wiped
+    if day == rota_day:
+        with open(lambda_path, 'w+') as file_object:
+            for element in weekly_list:
+                file_object.write(element + '\n')
+                # s3_upload = s3_client.upload_file(lambda_path, bucket, object_name)
+                bucket.upload_file(lambda_path, file_name)
+        # del weekly_list[:]
+    else:
+        print('Not re-writing schedule today.')
 
 
-# def read_schedule():
-#     with open(schedule_file) as file_object:
-#         lines = file_object.readlines()
-#         if weekly_list:
-#             del weekly_list[:]
-#         for line in lines:
-#             weekly_list.append(line.rstrip())
-#             # print(line)
-#     # print(weekly_list)
+def read_schedule():
+    s3_client.download_file(bucket, object_name, file_name)
+    with open(file_name, 'r') as file_object:
+        lines = file_object.readlines()
+        if weekly_list:
+            del weekly_list[:]
+        for line in lines:
+            weekly_list.append(line.rstrip())
+            # print(line)
+    # print(weekly_list)
 
 
-# def fill_schedule(day):
-#     # Fills the weekly_list schedule and calls the max_shifts function to ensure
-#     # that no IT Member is placed on more than 2 shifts a week
-#     if day == rota_day:
-#         while len(weekly_list) != 5:
-#             weekly_list.append(choice(list(it_dict.keys())))
-#             max_shifts(weekly_list, 2)
-#         write_schedule(current_day)
-#     else:
-#         read_schedule()
+def fill_schedule(day):
+    # Fills the weekly_list schedule and calls the max_shifts function to ensure
+    # that no IT Member is placed on more than 2 shifts a week
+    if day == rota_day:
+        while len(weekly_list) != 5:
+            weekly_list.append(choice(list(it_dict.keys())))
+            max_shifts(weekly_list, 2)
+        write_schedule(current_day)
+    else:
+        read_schedule()
 
 
 def today_shift_member():
@@ -192,18 +203,18 @@ def saturday_deletion(day):
     # Clears weekly_list schedule on a Saturday or Sunday, if not weekend then set topic in Slack
     if day == rota_day:
         # del weekly_list[:]
-        # write_schedule(current_day)
+        write_schedule(current_day)
         print(f'It is {current_day}.')
     else:
         print(f'It is {current_day}.')
-        # write_schedule(current_day)
-        # read_schedule()
+        write_schedule(current_day)
+        read_schedule()
         set_topic()
         post_message()
 
 
 # get_date()
-# fill_schedule(current_day)
+fill_schedule(current_day)
 
 # Assigns a day to an IT Member
 week_dict = {
