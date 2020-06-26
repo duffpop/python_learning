@@ -1,20 +1,20 @@
 import logging
 import os
-# import requests
-# from dotenv import load_dotenv
+import requests
+from dotenv import load_dotenv
 from random import choice
 import datetime
 from collections import Counter
-from botocore.vendored import requests
+# from botocore.vendored import requests
 import boto3
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 # get path to current directory
-# BASEDIR = os.path.abspath(os.path.dirname(__file__))
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 # prepend the .env file with current directory
-# load_dotenv(os.path.join(BASEDIR, '.env'))
+load_dotenv(os.path.join(BASEDIR, '.env'))
 
 slack_token = os.environ.get('SLACK_TOKEN')
 
@@ -113,6 +113,10 @@ def max_shifts(remove_from, how_many):
 #     # print(weekly_list)
 
 
+# def read_schedule():
+#
+#
+#
 # def fill_schedule(day):
 #     # Fills the weekly_list schedule and calls the max_shifts function to ensure
 #     # that no IT Member is placed on more than 2 shifts a week
@@ -214,7 +218,7 @@ week_dict = {
     'Friday': weekly_list[4]
 }
 
-topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}>. And who the fuck just loves BEANS?!'
+topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}>.'
 
 topic_data = {
     'token': slack_token,
@@ -231,15 +235,13 @@ message_data = {
 
 # saturday_deletion(current_day)
 
-# if __name__ == "__main__":
-# fill_schedule(current_day)
-# saturday_deletion(current_day)
-# post_message()
-# set_topic()
-
-# saturday_deletion(current_day)
-
-def lambda_handler(event, context):
+if __name__ == "__main__":
     saturday_deletion(current_day)
-    response = {'statusCode': 200, 'body': ''}
-    return response
+
+
+# saturday_deletion(current_day)
+
+# def lambda_handler(event, context):
+#     saturday_deletion()
+#     response = {'statusCode': 200, 'body': ''}
+#     return response
