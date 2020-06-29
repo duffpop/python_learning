@@ -1,7 +1,5 @@
 import logging
 import os
-# import requests
-# from dotenv import load_dotenv
 from random import choice
 import datetime
 from collections import Counter
@@ -11,22 +9,13 @@ import boto3
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
-# get path to current directory
-# BASEDIR = os.path.abspath(os.path.dirname(__file__))
-# prepend the .env file with current directory
-# load_dotenv(os.path.join(BASEDIR, '.env'))
-
 slack_token = os.environ.get('SLACK_TOKEN')
 
 s3_client = boto3.resource('s3')
-# bucket = "weekly-schedule"
 bucket = s3_client.Bucket('weekly-schedule')
 file_name = "weekly_schedule.txt"
 object_name = file_name
 lambda_path = ("/tmp/" + file_name)
-# s3_object = s3_client.Object(bucket, file_name)
-# s3_data = s3_object.get()['Body'].read().decode('utf-8').splitlines()
-# lines = csv.reader(s3_data)
 
 # Slack set topic URL
 topic_url = 'https://slack.com/api/conversations.setTopic'
@@ -61,14 +50,6 @@ it_dict = {
     'alex': ['U011VK4K44S', 'U011VK4K44S']
 }
 
-# list of IT Support members with the following value types
-# {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
-# it_dict = {
-#     'hayden': ['DEPF8CW2G', 'UEPH6G519'],
-#     'adeel': ['DHNT8FJ8G', 'UHNT8DGGY'],
-#     'alex': ['D0123FPLCE9', 'U011VK4K44S']
-# }
-
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
 # it_dict = {
 #     'hayden': ['UEPH6G519', 'UEPH6G519'],
@@ -90,9 +71,7 @@ rota_day = 'Saturday'
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
 current_day = current_time.strftime("%A")
-
-
-# testing the current_day variable by hardcoding the day
+## testing the current_day variable by hardcoding the day
 # current_day = 'Saturday'
 
 
@@ -212,7 +191,6 @@ def post_message():
 def saturday_deletion(day):
     # Clears weekly_list schedule on a Saturday or Sunday, if not weekend then set topic in Slack
     if day == rota_day:
-        # del weekly_list[:]
         write_schedule(current_day)
         print(f'It is {current_day}.')
     else:
@@ -249,16 +227,6 @@ message_data = {
     'text': f'<@{get_shift_member_user_id()}> you are keeping an eye on <#CHGUTD9PV> today, try to respond within an hour at all times :party_parrot:'
 }
 
-
-# saturday_deletion(current_day)
-
-# if __name__ == "__main__":
-# fill_schedule(current_day)
-# saturday_deletion(current_day)
-# post_message()
-# set_topic()
-
-# saturday_deletion(current_day)
 
 def lambda_handler(event, context):
     saturday_deletion(current_day)
