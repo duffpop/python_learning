@@ -38,7 +38,7 @@ slack_channel = 'G0125J6V866'
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
 it_dict = {
     'hayden': ['UEPH6G519', 'UEPH6G519'],
-    'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+    # 'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
     'alex': ['U011VK4K44S', 'U011VK4K44S']
 }
 
@@ -113,7 +113,7 @@ def fill_schedule(day):
     if day == rota_day:
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
-            max_shifts(weekly_list, 2)
+            max_shifts(weekly_list, 3)
         write_schedule(current_day)
     else:
         read_schedule()

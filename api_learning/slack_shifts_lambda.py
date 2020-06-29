@@ -24,6 +24,9 @@ bucket = s3_client.Bucket('weekly-schedule')
 file_name = "weekly_schedule.txt"
 object_name = file_name
 lambda_path = ("/tmp/" + file_name)
+# s3_object = s3_client.Object(bucket, file_name)
+# s3_data = s3_object.get()['Body'].read().decode('utf-8').splitlines()
+# lines = csv.reader(s3_data)
 
 # Slack set topic URL
 topic_url = 'https://slack.com/api/conversations.setTopic'
@@ -35,24 +38,28 @@ Required API scopes:
     - channels:manage - Manage public channels - to set channel topic for #it-support - NOT YET IMPLEMENTED
     - groups:write - Manage private channels - to set channel topic for #it-support-team-bantz
     - im:write - DM people - to send the IT Support shift member a DM notifying them that they're on shift
+
+EventBridge/CloudWatch Cron expression example:
+    - 37 11 ? * MON-SAT *
+    - Runs at 11:37 UTC, Monday-Saturday 
 '''
 
 # #it-support-bantz channel
-# slack_channel = 'G0125J6V866'
+slack_channel = 'G0125J6V866'
 
 # #it-support-alerts channel
 # slack_channel = 'C013XK82R24'
 
 # #shift-bot-spam channel
-slack_channel = 'C015SGU1LBV'
+# slack_channel = 'C015SGU1LBV'
 
 # list of IT Support members with the following value types
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
-# it_dict = {
-#     'hayden': ['UEPH6G519', 'UEPH6G519'],
-#     'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
-#     'alex': ['U011VK4K44S', 'U011VK4K44S']
-# }
+it_dict = {
+    'hayden': ['UEPH6G519', 'UEPH6G519'],
+    # 'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+    'alex': ['U011VK4K44S', 'U011VK4K44S']
+}
 
 # list of IT Support members with the following value types
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
@@ -63,17 +70,17 @@ slack_channel = 'C015SGU1LBV'
 # }
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
-it_dict = {
-    'hayden': ['UEPH6G519', 'UEPH6G519'],
-    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
-    'alex': ['UEPH6G519', 'U011VK4K44S']
-}
+# it_dict = {
+#     'hayden': ['UEPH6G519', 'UEPH6G519'],
+#     'adeel': ['UEPH6G519', 'UHNT8DGGY'],
+#     'alex': ['UEPH6G519', 'U011VK4K44S']
+# }
 
 # txt file which stores the schedule for the week
 schedule_file = 'weekly_schedule.txt'
 
 # list to store the weekly schedule
-# weekly_list = ['hayden', 'alex', 'alex', 'adeel', 'hayden']
+# weekly_list = ['alex', 'alex', 'hayden', 'hayden', 'alex']
 weekly_list = []
 
 # day to wipe the schedule and repopulate it
@@ -82,11 +89,11 @@ rota_day = 'Saturday'
 # grabs the current day
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
-# current_day = current_time.strftime("%A")
+current_day = current_time.strftime("%A")
 
 
 # testing the current_day variable by hardcoding the day
-current_day = 'Saturday'
+# current_day = 'Saturday'
 
 
 def max_shifts(remove_from, how_many):
@@ -106,15 +113,18 @@ def write_schedule(day):
             for element in weekly_list:
                 file_object.write(element + '\n')
                 # s3_upload = s3_client.upload_file(lambda_path, bucket, object_name)
-                bucket.upload_file(lambda_path, file_name)
+            # bucket.upload_file(lambda_path, file_name)
+            # s3_client.meta.client.upload_file(lambda_path, bucket, file_name)
         # del weekly_list[:]
+        bucket.upload_file(lambda_path, file_name)
     else:
         print('Not re-writing schedule today.')
 
 
 def read_schedule():
-    s3_client.download_file(bucket, object_name, file_name)
-    with open(file_name, 'r') as file_object:
+    # s3_client.meta.client.download_file(bucket, object_name, file_name)
+    bucket.download_file(file_name, lambda_path)
+    with open(lambda_path, 'r') as file_object:
         lines = file_object.readlines()
         if weekly_list:
             del weekly_list[:]
@@ -130,7 +140,7 @@ def fill_schedule(day):
     if day == rota_day:
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
-            max_shifts(weekly_list, 2)
+            max_shifts(weekly_list, 3)
         write_schedule(current_day)
     else:
         read_schedule()
@@ -225,7 +235,7 @@ week_dict = {
     'Friday': weekly_list[4]
 }
 
-topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}>. And who the fuck just loves BEANS?!'
+topic = f'The <#CHGUTD9PV> shift member for the day is <@{get_shift_member_user_id()}>.'
 
 topic_data = {
     'token': slack_token,
@@ -236,7 +246,7 @@ topic_data = {
 message_data = {
     'token': slack_token,
     'channel': get_shift_member_channel_id(),
-    'text': f'<@{get_shift_member_user_id()}> you are the IT warrior of the day, please keep an eye on <#CHGUTD9PV>'
+    'text': f'<@{get_shift_member_user_id()}> you are keeping an eye on <#CHGUTD9PV> today, try to respond within an hour at all times :party_parrot:'
 }
 
 
