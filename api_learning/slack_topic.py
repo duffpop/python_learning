@@ -23,22 +23,22 @@ client = WebClient(token=os.environ.get('SLACK_TOKEN'))
 
 
 # #it-support-bantz channel
-slack_channel = 'G0125J6V866'
+# slack_channel = 'G0125J6V866'
 
 # #it-support-alerts channel
 # slack_channel = 'C013XK82R24'
 
 # #shift-bot-spam channel
-# slack_channel = 'C015SGU1LBV'
+slack_channel = 'C015SGU1LBV'
 
 
 # list of IT Support members with the following value types
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
-it_dict = {
-    'hayden': ['UEPH6G519', 'UEPH6G519'],
-    'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
-    'alex': ['U011VK4K44S', 'U011VK4K44S']
-}
+# it_dict = {
+#     'hayden': ['UEPH6G519', 'UEPH6G519'],
+#     'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+#     'alex': ['U011VK4K44S', 'U011VK4K44S']
+# }
 
 # list of IT Support members with the following value types
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
@@ -49,12 +49,11 @@ it_dict = {
 # }
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
-# it_dict = {
-#     'hayden': ['UEPH6G519', 'UEPH6G519'],
-#     'adeel': ['UEPH6G519', 'UHNT8DGGY'],
-#     'alex': ['UEPH6G519', 'U011VK4K44S'],
-#     'dingus': ['UEPH6G519', 'U013WH5MVRR']
-# }
+it_dict = {
+    'hayden': ['UEPH6G519', 'UEPH6G519'],
+    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
+    'alex': ['UEPH6G519', 'U011VK4K44S']
+}
 
 # txt file which stores the schedule for the week
 schedule_file = 'weekly_schedule.txt'
