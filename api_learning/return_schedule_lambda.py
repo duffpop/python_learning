@@ -13,6 +13,13 @@ week_beginning = week_beginning.strftime("%d/%m/%Y")
 
 weekly_list = []
 
+it_dict = {
+    'hayden': ['UEPH6G519', 'UEPH6G519'],
+    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
+    'alex': ['UEPH6G519', 'U011VK4K44S']
+}
+
+
 def schedule_formatter():
     bucket.download_file(file_name, lambda_path)
     with open(lambda_path, 'r') as file_object:
@@ -30,6 +37,18 @@ week_dict = {
     'Thursday': weekly_list[3],
     'Friday': weekly_list[4]
 }
+
+
+def get_slack_id():
+    for name in weekly_list:
+        for key, value in it_dict.items():
+            if name == key:
+                # print(f'{key} + {value}')
+                shift_member_id = value[0]
+                return shift_member_id
+            else:
+                continue
+
 
 def lambda_handler(event, context):
     return {

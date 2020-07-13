@@ -1,22 +1,22 @@
 import logging
 import os
-import requests
-from dotenv import load_dotenv
 from random import choice
 import datetime
+import requests
 from collections import Counter
-# from botocore.vendored import requests
+from botocore.vendored import requests
 import boto3
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
-# get path to current directory
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
-# prepend the .env file with current directory
-load_dotenv(os.path.join(BASEDIR, '.env'))
-
 slack_token = os.environ.get('SLACK_TOKEN')
+
+s3_client = boto3.resource('s3')
+bucket = s3_client.Bucket('weekly-schedule')
+file_name = "weekly_schedule.txt"
+object_name = file_name
+lambda_path = ("/tmp/" + file_name)
 
 # Slack set topic URL
 topic_url = 'https://slack.com/api/conversations.setTopic'
@@ -28,6 +28,10 @@ Required API scopes:
     - channels:manage - Manage public channels - to set channel topic for #it-support - NOT YET IMPLEMENTED
     - groups:write - Manage private channels - to set channel topic for #it-support-team-bantz
     - im:write - DM people - to send the IT Support shift member a DM notifying them that they're on shift
+
+EventBridge/CloudWatch Cron expression example:
+    - 37 11 ? * MON-SAT *
+    - Runs at 11:37 UTC, Monday-Saturday 
 '''
 
 # #it-support-bantz channel
@@ -43,16 +47,8 @@ slack_channel = 'C015SGU1LBV'
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
 # it_dict = {
 #     'hayden': ['UEPH6G519', 'UEPH6G519'],
-#     'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+#     # 'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
 #     'alex': ['U011VK4K44S', 'U011VK4K44S']
-# }
-
-# list of IT Support members with the following value types
-# {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
-# it_dict = {
-#     'hayden': ['DEPF8CW2G', 'UEPH6G519'],
-#     'adeel': ['DHNT8FJ8G', 'UHNT8DGGY'],
-#     'alex': ['D0123FPLCE9', 'U011VK4K44S']
 # }
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
@@ -66,7 +62,8 @@ it_dict = {
 schedule_file = 'weekly_schedule.txt'
 
 # list to store the weekly schedule
-weekly_list = ['hayden', 'alex', 'alex', 'adeel', 'hayden']
+# weekly_list = ['alex', 'alex', 'hayden', 'hayden', 'alex']
+weekly_list = []
 
 # day to wipe the schedule and repopulate it
 rota_day = 'Saturday'
@@ -75,10 +72,8 @@ rota_day = 'Saturday'
 current_time = datetime.datetime.now()
 # returns the current day in Monday, Tuesday etc format
 current_day = current_time.strftime("%A")
-
-
-# testing the current_day variable by hardcoding the day
-# current_day = 'Tuesday'
+## testing the current_day variable by hardcoding the day
+# current_day = 'Saturday'
 
 
 def max_shifts(remove_from, how_many):
@@ -91,42 +86,44 @@ def max_shifts(remove_from, how_many):
             weekly_list.remove(item)
 
 
-# def write_schedule(day):
-#     # If the day is Sunday, the schedule gets wiped
-#     if day == rota_day:
-#         with open(schedule_file, 'w') as file_object:
-#             for element in weekly_list:
-#                 file_object.write(element + '\n')
-#         # del weekly_list[:]
-#     else:
-#         print('Not re-writing schedule today.')
+def write_schedule(day):
+    # If the day is Sunday, the schedule gets wiped
+    if day == rota_day:
+        with open(lambda_path, 'w+') as file_object:
+            for element in weekly_list:
+                file_object.write(element + '\n')
+                # s3_upload = s3_client.upload_file(lambda_path, bucket, object_name)
+            # bucket.upload_file(lambda_path, file_name)
+            # s3_client.meta.client.upload_file(lambda_path, bucket, file_name)
+        # del weekly_list[:]
+        bucket.upload_file(lambda_path, file_name)
+    else:
+        print('Not re-writing schedule today.')
 
 
-# def read_schedule():
-#     with open(schedule_file) as file_object:
-#         lines = file_object.readlines()
-#         if weekly_list:
-#             del weekly_list[:]
-#         for line in lines:
-#             weekly_list.append(line.rstrip())
-#             # print(line)
-#     # print(weekly_list)
+def read_schedule():
+    # s3_client.meta.client.download_file(bucket, object_name, file_name)
+    bucket.download_file(file_name, lambda_path)
+    with open(lambda_path, 'r') as file_object:
+        lines = file_object.readlines()
+        if weekly_list:
+            del weekly_list[:]
+        for line in lines:
+            weekly_list.append(line.rstrip())
+            # print(line)
+    # print(weekly_list)
 
 
-# def read_schedule():
-#
-#
-#
-# def fill_schedule(day):
-#     # Fills the weekly_list schedule and calls the max_shifts function to ensure
-#     # that no IT Member is placed on more than 2 shifts a week
-#     if day == rota_day:
-#         while len(weekly_list) != 5:
-#             weekly_list.append(choice(list(it_dict.keys())))
-#             max_shifts(weekly_list, 2)
-#         write_schedule(current_day)
-#     else:
-#         read_schedule()
+def fill_schedule(day):
+    # Fills the weekly_list schedule and calls the max_shifts function to ensure
+    # that no IT Member is placed on more than 2 shifts a week
+    if day == rota_day:
+        while len(weekly_list) != 5:
+            weekly_list.append(choice(list(it_dict.keys())))
+            max_shifts(weekly_list, 3)
+        write_schedule(current_day)
+    else:
+        read_schedule()
 
 
 def today_shift_member():
@@ -195,19 +192,18 @@ def post_message():
 def saturday_deletion(day):
     # Clears weekly_list schedule on a Saturday or Sunday, if not weekend then set topic in Slack
     if day == rota_day:
-        # del weekly_list[:]
-        # write_schedule(current_day)
+        write_schedule(current_day)
         print(f'It is {current_day}.')
     else:
         print(f'It is {current_day}.')
-        # write_schedule(current_day)
-        # read_schedule()
+        write_schedule(current_day)
+        read_schedule()
         set_topic()
         post_message()
 
 
 # get_date()
-# fill_schedule(current_day)
+fill_schedule(current_day)
 
 # Assigns a day to an IT Member
 week_dict = {
@@ -218,7 +214,7 @@ week_dict = {
     'Friday': weekly_list[4]
 }
 
-topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}>.'
+topic = f'The <#CHGUTD9PV> shift member for the day is <@{get_shift_member_user_id()}>.'
 
 topic_data = {
     'token': slack_token,
@@ -229,19 +225,14 @@ topic_data = {
 message_data = {
     'token': slack_token,
     'channel': get_shift_member_channel_id(),
-    'text': f'<@{get_shift_member_user_id()}> you are the IT warrior of the day, please keep an eye on <#CHGUTD9PV>'
+    'text': f'<@{get_shift_member_user_id()}> you are keeping an eye on <#CHGUTD9PV> today, try to respond within an hour at all times :party_parrot:'
 }
-
-
-# saturday_deletion(current_day)
 
 if __name__ == "__main__":
     saturday_deletion(current_day)
 
 
-# saturday_deletion(current_day)
-
 # def lambda_handler(event, context):
-#     saturday_deletion()
+#     saturday_deletion(current_day)
 #     response = {'statusCode': 200, 'body': ''}
 #     return response

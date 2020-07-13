@@ -127,21 +127,10 @@ def today_shift_member():
             continue
 
 
-def get_shift_member_channel_id():
-    name = f'{today_shift_member()}'
-    # print(name)
-    for key, value in it_dict.items():
-        if name == key:
-            # print(f'{key} + {value}')
-            shift_member_id = value[0]
-            return shift_member_id
-        else:
-            continue
-
-
 def get_shift_member_user_id():
     name = f'{today_shift_member()}'
     # print(name)
+    # return it_dict[name]
     for key, value in it_dict.items():
         if name == key:
             # print(f'{key} + {value}')
@@ -185,7 +174,7 @@ week_dict = {
     'Friday': weekly_list[4]
 }
 
-topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}>.'
+topic = f'The #it-support shift member for the day is <@{get_shift_member_user_id()}> whose name is {today_shift_member().title()}.'
 topic_data = {
     'token': slack_token,
     'channel': slack_channel,
@@ -194,7 +183,7 @@ topic_data = {
 
 message_data = {
     'token': slack_token,
-    'channel': get_shift_member_channel_id(),
+    'channel': get_shift_member_user_id(),
     'text': f'<@{get_shift_member_user_id()}> :snake:'
 }
 
