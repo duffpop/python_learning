@@ -76,6 +76,16 @@ current_day = current_time.strftime("%A")
 ## testing the current_day variable by hardcoding the day
 # current_day = 'Saturday'
 
+# A dict showing exceptions for the week
+# TODO pull holiday data from bob and feed into this dict
+schedule_exceptions = {
+    'Monday': None,
+    'Tuesday': 'owain',
+    'Wednesday': None,
+    'Thursday': None,
+    'Friday': None
+}
+
 
 def max_shifts(remove_from, how_many):
     # Ensures that no IT Member is placed on more than 2 shifts a week
@@ -100,6 +110,34 @@ def min_shifts(schedule_list, how_many):
         for most_common_member, number in counts.most_common():
             if number < how_many:
                 schedule_list.remove(most_common_name[0])
+
+
+def member_day_exclusion(member_to_exclude, day, schedule):
+    member_to_exclude = member_to_exclude.lower()
+    day = day.title()
+
+    while len(schedule) == 5:
+        if day == 'Monday':
+            assigned_member = schedule[0]
+        elif day == 'Tuesday':
+            assigned_member = schedule[1]
+        elif day == 'Wednesday':
+            assigned_member = schedule[2]
+        elif day == 'Thursday':
+            assigned_member = schedule[3]
+        elif day == 'Friday':
+            assigned_member = schedule[4]
+        else:
+            print('Day entered is incorrect. Please enter a day from the week_dict keys.')
+
+        if len(schedule) == 5 and assigned_member == member_to_exclude:
+            schedule.remove(assigned_member)
+            # The below line may need removing, it means that Owain will have two shifts on weeks
+            # where he was chosen to work on Tuesdays
+            schedule.append(assigned_member)
+            break
+        else:
+            break
 
 
 def write_schedule(day):
@@ -132,6 +170,7 @@ def fill_schedule(day):
             weekly_list.append(choice(list(it_dict.keys())))
             max_shifts(weekly_list, 2)
             min_shifts(weekly_list, 1)
+            member_day_exclusion('owain', 'Tuesday', weekly_list)
         write_schedule(current_day)
     else:
         read_schedule()
