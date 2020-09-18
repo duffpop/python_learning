@@ -72,6 +72,8 @@ current_day = current_time.strftime("%A")
 # testing the current_day variable by hardcoding the day
 # current_day = 'Tuesday'
 
+# A dict showing exceptions for the week
+# TODO pull holiday data from bob and feed into this dict
 schedule_exceptions = {
     'Monday': None,
     'Tuesday': 'owain',
@@ -109,20 +111,7 @@ def min_shifts(schedule_list, how_many):
 def member_day_exclusion(member_to_exclude, day, schedule):
     member_to_exclude = member_to_exclude.lower()
     day = day.title()
-    # global assigned_member
 
-    # if len(weekly_list) == 1 and day == 'Monday':
-    #     assigned_member = weekly_list[0]
-    # elif len(weekly_list) == 2 and day == 'Tuesday':
-    #     assigned_member = weekly_list[1]
-    # elif len(weekly_list) == 3 and day == 'Wednesday':
-    #     assigned_member = weekly_list[2]
-    # elif len(weekly_list) == 4 and day == 'Thursday':
-    #     assigned_member = weekly_list[3]
-    # elif len(weekly_list) == 5 and day == 'Friday':
-    #     assigned_member = weekly_list[4]
-    # else:
-    #     print('Day entered is incorrect. Please enter a day from the week_dict keys.')
     while len(schedule) == 5:
         if day == 'Monday':
             assigned_member = schedule[0]
@@ -138,7 +127,6 @@ def member_day_exclusion(member_to_exclude, day, schedule):
             print('Day entered is incorrect. Please enter a day from the week_dict keys.')
 
         if len(schedule) == 5 and assigned_member == member_to_exclude:
-            # schedule.pop(schedule.index(assigned_member))
             schedule.remove(assigned_member)
             # The below line may need removing, it means that Owain will have two shifts on weeks
             # where he was chosen to work on Tuesdays
