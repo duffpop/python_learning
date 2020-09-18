@@ -47,14 +47,16 @@ slack_channel = 'G0125J6V866'
 it_dict = {
     'hayden': ['UEPH6G519', 'UEPH6G519'],
     'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
-    'alex': ['U011VK4K44S', 'U011VK4K44S']
+    'alex': ['U011VK4K44S', 'U011VK4K44S'],
+    'owain': ['U01A8GHKS0Y', 'U01A8GHKS0Y']
 }
 
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
 # it_dict = {
 #     'hayden': ['UEPH6G519', 'UEPH6G519'],
 #     'adeel': ['UEPH6G519', 'UHNT8DGGY'],
-#     'alex': ['UEPH6G519', 'U011VK4K44S']
+#     'alex': ['UEPH6G519', 'U011VK4K44S'],
+#     'owain': ['UEPH6G519', 'U01A8GHKS0Y']
 # }
 
 # txt file which stores the schedule for the week
@@ -65,7 +67,7 @@ schedule_file = 'weekly_schedule.txt'
 weekly_list = []
 
 # day to wipe the schedule and repopulate it
-rota_day = 'Saturday'
+rota_day = 'Friday'
 
 # grabs the current day
 current_time = datetime.datetime.now()
@@ -83,6 +85,21 @@ def max_shifts(remove_from, how_many):
         counts[item] += 1
         if counts[item] > how_many:
             weekly_list.remove(item)
+
+
+def min_shifts(schedule_list, how_many):
+    counts = Counter(schedule_list)
+    it_names = [name for name, slack_info in it_dict.items()]
+    most_common_name = [most_common_member for most_common_member, number in counts.most_common(1)]
+
+    for member in it_names:
+        if len(schedule_list) == 5 and member not in schedule_list:
+            schedule_list.remove(most_common_name[0])
+
+    if len(schedule_list) == 5:
+        for most_common_member, number in counts.most_common():
+            if number < how_many:
+                schedule_list.remove(most_common_name[0])
 
 
 def write_schedule(day):
@@ -114,6 +131,7 @@ def fill_schedule(day):
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
             max_shifts(weekly_list, 2)
+            min_shifts(weekly_list, 1)
         write_schedule(current_day)
     else:
         read_schedule()
