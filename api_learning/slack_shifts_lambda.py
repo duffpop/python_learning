@@ -2,15 +2,9 @@ import logging
 import os
 from random import choice
 import datetime
-from dotenv import load_dotenv
 from collections import Counter
 from botocore.vendored import requests
 import boto3
-
-# get path to current directory
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
-# prepend the .env file with current directory
-load_dotenv(os.path.join(BASEDIR, '.env'))
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
@@ -52,7 +46,7 @@ slack_channel = 'G0125J6V866'
 # {name: DM channel name, user ID} -- NOTE THAT THE DM CHANNEL NAME NEEDS TO BE THE USER ID WHEN USING AN APP TOKEN
 it_dict = {
     'hayden': ['UEPH6G519', 'UEPH6G519'],
-    # 'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
+    'adeel': ['UHNT8DGGY', 'UHNT8DGGY'],
     'alex': ['U011VK4K44S', 'U011VK4K44S']
 }
 
@@ -97,10 +91,6 @@ def write_schedule(day):
         with open(lambda_path, 'w+') as file_object:
             for element in weekly_list:
                 file_object.write(element + '\n')
-                # s3_upload = s3_client.upload_file(lambda_path, bucket, object_name)
-            # bucket.upload_file(lambda_path, file_name)
-            # s3_client.meta.client.upload_file(lambda_path, bucket, file_name)
-        # del weekly_list[:]
         bucket.upload_file(lambda_path, file_name)
     else:
         print('Not re-writing schedule today.')
@@ -115,8 +105,6 @@ def read_schedule():
             del weekly_list[:]
         for line in lines:
             weekly_list.append(line.rstrip())
-            # print(line)
-    # print(weekly_list)
 
 
 def fill_schedule(day):
@@ -125,7 +113,7 @@ def fill_schedule(day):
     if day == rota_day:
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
-            max_shifts(weekly_list, 3)
+            max_shifts(weekly_list, 2)
         write_schedule(current_day)
     else:
         read_schedule()
