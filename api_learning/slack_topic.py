@@ -51,8 +51,9 @@ slack_channel = 'C015SGU1LBV'
 # All DMs go to Hayden but tags Alex, Adeel, Hayden - test Dict
 it_dict = {
     'hayden': ['UEPH6G519', 'UEPH6G519'],
-    'adeel': ['UEPH6G519', 'UHNT8DGGY'],
-    'alex': ['UEPH6G519', 'U011VK4K44S']
+    # 'adeel': ['UEPH6G519', 'UEPH6G519'],
+    # 'alex': ['UEPH6G519', 'UEPH6G519'],
+    'owain': ['UEPH6G519', 'UEPH6G519']
 }
 
 # txt file which stores the schedule for the week
@@ -62,7 +63,7 @@ schedule_file = 'weekly_schedule.txt'
 weekly_list = []
 
 # day to wipe the schedule and repopulate it
-rota_day = 'Saturday'
+rota_day = 'Wednesday'
 
 # grabs the current day
 current_time = datetime.datetime.now()
@@ -70,6 +71,14 @@ current_time = datetime.datetime.now()
 current_day = current_time.strftime("%A")
 # testing the current_day variable by hardcoding the day
 # current_day = 'Tuesday'
+
+schedule_exceptions = {
+    'Monday': None,
+    'Tuesday': 'owain',
+    'Wednesday': None,
+    'Thursday': None,
+    'Friday': None
+}
 
 
 def max_shifts(remove_from, how_many):
@@ -82,13 +91,42 @@ def max_shifts(remove_from, how_many):
             weekly_list.remove(item)
 
 
+def min_shifts(schedule_list, how_many):
+    counts = Counter()
+    for item in schedule_list:
+        counts[item] += 1
+        if counts[item] < how_many:
+            weekly_list.remove([-1])
+
+
+def member_day_exclusion(member_to_exclude, day):
+    member_to_exclude = member_to_exclude.lower()
+    day = day.title()
+    assigned_member = ''
+
+    if day == 'Monday':
+        assigned_member = weekly_list[0]
+    elif day == 'Tuesday':
+        assigned_member = weekly_list[1]
+    elif day == 'Wednesday':
+        assigned_member = weekly_list[2]
+    elif day == 'Thursday':
+        assigned_member = weekly_list[3]
+    elif day == 'Friday':
+        assigned_member = weekly_list[4]
+    else:
+        print('Day entered is incorrect. Please enter a day from the week_dict keys.')
+
+    if assigned_member == member_to_exclude:
+        weekly_list.remove(member_to_exclude)
+
+
 def write_schedule(day):
     # If the day is Sunday, the schedule gets wiped
     if day == rota_day:
         with open(schedule_file, 'w') as file_object:
             for element in weekly_list:
                 file_object.write(element + '\n')
-        # del weekly_list[:]
     else:
         print('Not re-writing schedule today.')
 
@@ -96,12 +134,12 @@ def write_schedule(day):
 def read_schedule():
     with open(schedule_file) as file_object:
         lines = file_object.readlines()
+
         if weekly_list:
             del weekly_list[:]
+
         for line in lines:
             weekly_list.append(line.rstrip())
-            # print(line)
-    # print(weekly_list)
 
 
 def fill_schedule(day):
@@ -111,6 +149,7 @@ def fill_schedule(day):
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
             max_shifts(weekly_list, 2)
+            member_day_exclusion('owain','tuesday')
         write_schedule(current_day)
     else:
         read_schedule()
