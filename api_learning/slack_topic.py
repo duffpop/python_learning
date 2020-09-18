@@ -106,26 +106,46 @@ def min_shifts(schedule_list, how_many):
                 schedule_list.remove(most_common_name[0])
 
 
-def member_day_exclusion(member_to_exclude, day):
+def member_day_exclusion(member_to_exclude, day, schedule):
     member_to_exclude = member_to_exclude.lower()
     day = day.title()
-    assigned_member = ''
+    # global assigned_member
 
-    if day == 'Monday':
-        assigned_member = weekly_list[0]
-    elif day == 'Tuesday':
-        assigned_member = weekly_list[1]
-    elif day == 'Wednesday':
-        assigned_member = weekly_list[2]
-    elif day == 'Thursday':
-        assigned_member = weekly_list[3]
-    elif day == 'Friday':
-        assigned_member = weekly_list[4]
-    else:
-        print('Day entered is incorrect. Please enter a day from the week_dict keys.')
+    # if len(weekly_list) == 1 and day == 'Monday':
+    #     assigned_member = weekly_list[0]
+    # elif len(weekly_list) == 2 and day == 'Tuesday':
+    #     assigned_member = weekly_list[1]
+    # elif len(weekly_list) == 3 and day == 'Wednesday':
+    #     assigned_member = weekly_list[2]
+    # elif len(weekly_list) == 4 and day == 'Thursday':
+    #     assigned_member = weekly_list[3]
+    # elif len(weekly_list) == 5 and day == 'Friday':
+    #     assigned_member = weekly_list[4]
+    # else:
+    #     print('Day entered is incorrect. Please enter a day from the week_dict keys.')
+    while len(schedule) == 5:
+        if day == 'Monday':
+            assigned_member = schedule[0]
+        elif day == 'Tuesday':
+            assigned_member = schedule[1]
+        elif day == 'Wednesday':
+            assigned_member = schedule[2]
+        elif day == 'Thursday':
+            assigned_member = schedule[3]
+        elif day == 'Friday':
+            assigned_member = schedule[4]
+        else:
+            print('Day entered is incorrect. Please enter a day from the week_dict keys.')
 
-    if assigned_member == member_to_exclude:
-        weekly_list.remove(member_to_exclude)
+        if len(schedule) == 5 and assigned_member == member_to_exclude:
+            # schedule.pop(schedule.index(assigned_member))
+            schedule.remove(assigned_member)
+            # The below line may need removing, it means that Owain will have two shifts on weeks
+            # where he was chosen to work on Tuesdays
+            schedule.append(assigned_member)
+            break
+        else:
+            break
 
 
 def write_schedule(day):
@@ -155,10 +175,15 @@ def fill_schedule(day):
     if day == rota_day:
         while len(weekly_list) != 5:
             weekly_list.append(choice(list(it_dict.keys())))
+            print(weekly_list)
             max_shifts(weekly_list, 2)
+            print(weekly_list)
             min_shifts(weekly_list, 1)
-            # member_day_exclusion('owain','tuesday')
+            print(weekly_list)
+            member_day_exclusion('owain', 'Tuesday', weekly_list)
+            print(weekly_list)
         write_schedule(current_day)
+        print(weekly_list)
     else:
         read_schedule()
 
